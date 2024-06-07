@@ -35,7 +35,7 @@ router.get("/:id", handleErrorAsync(async (req, res, next) => {
   const { id } = req.params;
 
   if (!id || !mongoose.isValidObjectId(id)) {
-    return next(appError(400, "無效的貼文ID！"))
+    return next(appError(400, "無效的貼文ID！"));
   }
 
   const post = await Post.findById(id)
@@ -49,7 +49,7 @@ router.get("/:id", handleErrorAsync(async (req, res, next) => {
     })
 
   if (!post) {
-    return next(appError(400, "無效的貼文ID！"))
+    return next(appError(400, "無效的貼文ID！"));
   }
 
   res.status(200).json({
