@@ -6,6 +6,7 @@ const cors = require("cors");
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const postRouter = require("./routes/posts");
+const uploadRouter = require("./routes/upload");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const app = express();
@@ -33,9 +34,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use('/', indexRouter);
+app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/posts", postRouter);
+app.use("/upload", uploadRouter);
 
 // 404 錯誤
 app.use(function (req, res, next) {
