@@ -41,10 +41,53 @@ router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
       content,
     });
     res.status(200).json({
-      message: "success",
+      status: "success",
       post: newPost,
     });
   })
 );
+
+// 新增一則貼文的讚
+router.post("/:id/like", isAuth, handleErrorAsync(async (req, res, next) => {
+    const _id = req.params.id;
+    await Post.findOneAndUpdate({ _id }, { $addToSet: { likes: req.user.id } });
+
+    res.status(201).json({
+      status: "success",
+      postId: _id,
+      userId: req.user.id,
+    });
+  })
+);
+
+// 取消一則貼文的讚
+router.delete("/:id/unlike", isAuth, handleErrorAsync(async (req, res, next) => {
+    const _id = req.params.id;
+    await Post.findOneAndUpdate({ _id }, { $pull: { likes: req.user.id } });
+
+    res.status(201).json({
+      status: "success",
+      postId: _id,
+      userId: req.user.id,
+    });
+  })
+);
+
+// 取得個人所有貼文列表
+router.get("/user/:id", handleErrorAsync(async (req, res, next) => {
+    const user = req.params.id;
+    const posts = await Post.find({ user }).populate({
+      path: "comments",
+      select: "comment user",
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: posts.length,
+      posts,
+    });
+  })
+);
+
 
 module.exports = router;

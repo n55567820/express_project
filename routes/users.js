@@ -83,5 +83,21 @@ router.get("/profile/", isAuth, handleErrorAsync(async (req, res, next) => {
 })
 );
 
+// 取得個人按讚列表
+router.get("/getLikeList", isAuth, handleErrorAsync(async (req, res, next) => {
+
+  const likeList = await Post.find({
+    likes: { $in: [req.user.id] }
+  }).populate({
+    path: "user",
+    select: "name _id"
+  })
+
+  res.status(200).json({
+    status: 'success',
+    likeList
+  });
+}))
+
 
 module.exports = router;
