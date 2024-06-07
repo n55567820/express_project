@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const appError = require("../service/appError");
 const handleErrorAsync = require("../service/handleErrorAsync");
+const mongoose = require('mongoose');
 const Post = require("../models/postsModel");
 const User = require("../models/usersModel");
 const Comment = require('../models/commentsModel')
@@ -10,8 +11,7 @@ const { isAuth, generateSendJWT } = require("../service/auth");
 // 取得所有貼文
 router.get("/", handleErrorAsync(async (req, res, next) => {
     const timeSort = req.query.timeSort == "asc" ? "createdAt" : "-createdAt";
-    const q =
-      req.query.q !== undefined ? { content: new RegExp(req.query.q) } : {};
+    const q = req.query.q !== undefined ? { content: new RegExp(req.query.q) } : {};
     const posts = await Post.find(q)
       .populate({
         path: "user",
@@ -29,6 +29,34 @@ router.get("/", handleErrorAsync(async (req, res, next) => {
     });
   })
 );
+
+// 取得單一貼文
+router.get("/:id", handleErrorAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id || !mongoose.isValidObjectId(id)) {
+    return next(appError(400, "無效的貼文ID！"))
+  }
+
+  const post = await Post.findById(id)
+    .populate({
+      path: "user",
+      select: "name photo email",
+    })
+    .populate({
+      path: "comments",
+      select: "comment user",
+    })
+
+  if (!post) {
+    return next(appError(400, "無效的貼文ID！"))
+  }
+
+  res.status(200).json({
+    status:"success",
+    post
+  })
+}))
 
 // 新增貼文
 router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
@@ -72,6 +100,24 @@ router.delete("/:id/unlike", isAuth, handleErrorAsync(async (req, res, next) => 
     });
   })
 );
+
+// 新增一則貼文的留言
+router.post("/:id/comment", isAuth, handleErrorAsync(async (req, res, next) => {
+  const user = req.user.id;
+  const post = req.params.id;
+  const { comment } = req.body;
+
+  const newComment = await Comment.create({
+    user,
+    post,
+    comment
+  })
+
+  res.status(201).json({
+    status: "success",
+    comments: newComment
+  })
+}))
 
 // 取得個人所有貼文列表
 router.get("/user/:id", handleErrorAsync(async (req, res, next) => {
