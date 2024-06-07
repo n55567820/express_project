@@ -1,86 +1,50 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
+const appError = require("../service/appError");
+const handleErrorAsync = require("../service/handleErrorAsync");
 const Post = require("../models/postsModel");
+const User = require("../models/usersModel");
+const Comment = require('../models/commentsModel')
+const { isAuth, generateSendJWT } = require("../service/auth");
 
-router.get("/", async (req, res) => {
-  try {
-    const post = await Post.find();
-    res.json({
-      post,
+// 取得所有貼文
+router.get("/", handleErrorAsync(async (req, res, next) => {
+    const timeSort = req.query.timeSort == "asc" ? "createdAt" : "-createdAt";
+    const q =
+      req.query.q !== undefined ? { content: new RegExp(req.query.q) } : {};
+    const posts = await Post.find(q)
+      .populate({
+        path: "user",
+        select: "name photo email",
+      })
+      .populate({
+        path: "comments",
+        select: "comment user",
+      })
+      .sort(timeSort);
+    // asc 遞增(由小到大，由舊到新) createdAt ;
+    // desc 遞減(由大到小、由新到舊) "-createdAt"
+    res.status(200).json({
+      posts,
     });
-  } catch (error) {
-    res.status(400).json({
-      status: "false",
-      message: "讀取錯誤",
-      error: error,
-    });
-  }
-});
+  })
+);
 
-router.post("/", async (req, res) => {
-  try {
-    const newPost = await Post.create(req.body);
-    res.json({
-      status: "success",
-      posts: newPost,
+// 新增貼文
+router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
+    const { content } = req.body;
+    if (!content) {
+      return next(appError(400, "你沒有填寫 content 資料"));
+    }
+    const newPost = await Post.create({
+      user: req.user.id,
+      content,
     });
-  } catch (error) {
-    res.status(400).json({
-      status: "false",
-      message: "輸入內容錯誤",
-      error: error,
+    res.status(200).json({
+      message: "success",
+      post: newPost,
     });
-  }
-});
-
-router.delete("/", async (req, res) => {
-  try {
-    await Post.deleteMany({});
-    res.json({
-      status: "success",
-      posts: [],
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "false",
-      message: "刪除錯誤",
-      error: error,
-    });
-  }
-});
-
-router.delete("/:id", async (req, res, next) => {
-  try {
-    const post = await Post.findByIdAndDelete(req.params.id);
-    res.json({
-      status: "success",
-      posts: post,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "false",
-      message: "刪除錯誤",
-      error: error,
-    });
-  }
-});
-
-router.patch("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { body } = req;
-    const updatedPost = await Post.findByIdAndUpdate(id, body, { new: true });
-    res.json({
-      status: "success",
-      posts: updatedPost,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "false",
-      message: "輸入內容錯誤",
-      error: error,
-    });
-  }
-});
+  })
+);
 
 module.exports = router;

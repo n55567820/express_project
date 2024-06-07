@@ -24,7 +24,7 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-mongoose.connect(process.env.DB).then(() => console.log("資料庫連接成功"));
+mongoose.connect(DB).then(() => console.log("資料庫連接成功"));
 
 app.use(cors());
 app.use(logger("dev"));

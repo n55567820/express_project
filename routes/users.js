@@ -1,13 +1,15 @@
 const express = require("express");
+const router = express.Router();
 const bcrypt = require("bcryptjs");
 const appError = require("../service/appError");
-const jwt = require("jsonwebtoken");
 const handleErrorAsync = require("../service/handleErrorAsync");
+const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const User = require("../models/usersModel");
+const Post = require("../models/postsModel");
 const { isAuth, generateSendJWT } = require("../service/auth");
-const router = express.Router();
 
+// 註冊會員
 router.post("/sign_up", handleErrorAsync(async (req, res, next) => {
     let { email, password, confirmPassword, name } = req.body;
     // 內容不可為空
@@ -39,6 +41,7 @@ router.post("/sign_up", handleErrorAsync(async (req, res, next) => {
   })
 );
 
+// 登入會員
 router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -54,14 +57,7 @@ router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
   })
 );
 
-router.get("/profile/", isAuth, handleErrorAsync(async (req, res, next) => {
-    res.status(200).json({
-      status: "success",
-      user: req.user,
-    });
-  })
-);
-
+// 重設密碼
 router.post("/updatePassword", isAuth, handleErrorAsync(async (req, res, next) => {
     const { password, confirmPassword } = req.body;
 
@@ -77,5 +73,15 @@ router.post("/updatePassword", isAuth, handleErrorAsync(async (req, res, next) =
     generateSendJWT(user, 200, res);
   })
 );
+
+// 取得個人資料
+router.get("/profile/", isAuth, handleErrorAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: "success",
+    user: req.user,
+  });
+})
+);
+
 
 module.exports = router;
