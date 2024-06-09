@@ -10,28 +10,34 @@ const { isAuth, generateSendJWT } = require("../service/auth");
 
 // 取得所有貼文
 router.get("/", handleErrorAsync(async (req, res, next) => {
-    const timeSort = req.query.timeSort == "asc" ? "createdAt" : "-createdAt";
-    const q = req.query.q !== undefined ? { content: new RegExp(req.query.q) } : {};
-    const posts = await Post.find(q)
-      .populate({
-        path: "user",
-        select: "name photo email",
-      })
-      .populate({
-        path: "comments",
-        select: "comment user",
-      })
-      .sort(timeSort);
-    // asc 遞增(由小到大，由舊到新) createdAt ;
-    // desc 遞減(由大到小、由新到舊) "-createdAt"
-    res.status(200).json({
-      posts,
-    });
-  })
+  /*  #swagger.tags = ['Post']
+      }]
+  */
+  const timeSort = req.query.timeSort == "asc" ? "createdAt" : "-createdAt";
+  const q = req.query.q !== undefined ? { content: new RegExp(req.query.q) } : {};
+  const posts = await Post.find(q)
+    .populate({
+      path: "user",
+      select: "name photo email",
+    })
+    .populate({
+      path: "comments",
+      select: "comment user",
+    })
+    .sort(timeSort);
+  // asc 遞增(由小到大，由舊到新) createdAt ;
+  // desc 遞減(由大到小、由新到舊) "-createdAt"
+  res.status(200).json({
+    posts,
+  });
+})
 );
 
 // 取得單一貼文
 router.get("/:id", handleErrorAsync(async (req, res, next) => {
+  /*  #swagger.tags = ['Post']
+      }]
+  */
   const { id } = req.params;
 
   if (!id || !mongoose.isValidObjectId(id)) {
@@ -60,6 +66,9 @@ router.get("/:id", handleErrorAsync(async (req, res, next) => {
 
 // 新增貼文
 router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['Post']
+        }]
+    */
     const { content } = req.body;
     if (!content) {
       return next(appError(400, "你沒有填寫 content 資料"));
@@ -77,6 +86,9 @@ router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 新增一則貼文的讚
 router.post("/:id/like", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['Post']
+        }]
+    */
     const _id = req.params.id;
     await Post.findOneAndUpdate({ _id }, { $addToSet: { likes: req.user.id } });
 
@@ -90,6 +102,9 @@ router.post("/:id/like", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 取消一則貼文的讚
 router.delete("/:id/unlike", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['Post']
+        }]
+    */
     const _id = req.params.id;
     await Post.findOneAndUpdate({ _id }, { $pull: { likes: req.user.id } });
 
@@ -103,6 +118,9 @@ router.delete("/:id/unlike", isAuth, handleErrorAsync(async (req, res, next) => 
 
 // 新增一則貼文的留言
 router.post("/:id/comment", isAuth, handleErrorAsync(async (req, res, next) => {
+  /*  #swagger.tags = ['Post']
+      }]
+  */
   const user = req.user.id;
   const post = req.params.id;
   const { comment } = req.body;
@@ -121,6 +139,9 @@ router.post("/:id/comment", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 取得個人所有貼文列表
 router.get("/user/:id", handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['Post']
+        }]
+    */
     const user = req.params.id;
     const posts = await Post.find({ user }).populate({
       path: "comments",

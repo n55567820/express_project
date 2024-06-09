@@ -11,6 +11,9 @@ const { isAuth, generateSendJWT } = require("../service/auth");
 
 // 註冊會員
 router.post("/sign_up", handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['User']
+        }]
+    */
     let { email, password, confirmPassword, name } = req.body;
     // 內容不可為空
     if (!email || !password || !confirmPassword || !name) {
@@ -43,6 +46,9 @@ router.post("/sign_up", handleErrorAsync(async (req, res, next) => {
 
 // 登入會員
 router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['User']
+        }]
+    */
     const { email, password } = req.body;
     if (!email || !password) {
       return next(appError(400, "帳號密碼不可為空"));
@@ -59,6 +65,9 @@ router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
 
 // 重設密碼
 router.post("/updatePassword", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['User']
+        }]
+    */
     const { password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
@@ -76,6 +85,9 @@ router.post("/updatePassword", isAuth, handleErrorAsync(async (req, res, next) =
 
 // 取得個人資料
 router.get("/profile", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['User']
+        }]
+    */
     res.status(200).json({
       status: "success",
       user: req.user,
@@ -85,6 +97,9 @@ router.get("/profile", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 更新個人資料
 router.patch("/profile", isAuth, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['User']
+        }]
+    */
     const { name, sex, photo } = req.body;
 
     if (!name || !sex || !photo) {
@@ -112,6 +127,9 @@ router.patch("/profile", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 追蹤朋友
 router.post("/:id/follow", isAuth, handleErrorAsync(async (req, res, next) => {
+  /*  #swagger.tags = ['Like and Tracking']
+      }]
+  */
   if (req.user.id === req.params.id) {
     return next(appError(401, "您無法追蹤自己"));
   }
@@ -144,6 +162,9 @@ router.post("/:id/follow", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 取消追蹤朋友
 router.delete("/:id/unfollow", isAuth, handleErrorAsync(async (req, res, next) =>{
+  /*  #swagger.tags = ['Like and Tracking']
+      }]
+  */
   if (req.user.id === req.params.id) {
     return next(appError(401, "您無法取消追蹤自己"));
   }
@@ -174,7 +195,9 @@ router.delete("/:id/unfollow", isAuth, handleErrorAsync(async (req, res, next) =
 
 // 取得個人按讚列表
 router.get("/getLikeList", isAuth, handleErrorAsync(async (req, res, next) => {
-
+  /*  #swagger.tags = ['Like and Tracking']
+      }]
+  */
   const likeList = await Post.find({
     likes: { $in: [req.user.id] }
   }).populate({
@@ -190,7 +213,9 @@ router.get("/getLikeList", isAuth, handleErrorAsync(async (req, res, next) => {
 
 // 取得個人追蹤名單
 router.get("/following", isAuth, handleErrorAsync(async (req, res, next) => {
-  // const followList = await User.findById(req.user.id).select('following');
+  /*  #swagger.tags = ['Like and Tracking']
+      }]
+  */
   const { following } = await User.findById(req.user.id)
     .select('following -_id')
     .populate({

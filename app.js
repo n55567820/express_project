@@ -8,6 +8,8 @@ const usersRouter = require("./routes/users");
 const postRouter = require("./routes/posts");
 const uploadRouter = require("./routes/upload");
 const mongoose = require("mongoose");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger-output.json"); // 讀取專案中的 Swagger Doc
 const dotenv = require("dotenv");
 const app = express();
 // 程式出現重大錯誤時
@@ -38,6 +40,7 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/posts", postRouter);
 app.use("/upload", uploadRouter);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // 404 錯誤
 app.use(function (req, res, next) {

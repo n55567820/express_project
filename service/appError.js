@@ -5,5 +5,4 @@ const appError = (httpStatus, errMessage, next) => {
     return error;
   };
   
-  module.exports = appError;
-  
+module.exports = appError;

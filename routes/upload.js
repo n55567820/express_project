@@ -11,6 +11,9 @@ const bucket = firebaseAdmin.storage().bucket(); // 取出存儲桶內容
 const { isAuth } = require("../service/auth");
 
 router.post("/", isAuth, upload, handleErrorAsync(async (req, res, next) => {
+    /*  #swagger.tags = ['Upload']
+        }]
+    */
     if (!req.files.length) {
       return next(appError(400, "尚未上傳檔案", next));
     }
