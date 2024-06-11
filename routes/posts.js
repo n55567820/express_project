@@ -126,7 +126,13 @@ router.post("/:id/comment", isAuth, handleErrorAsync(async (req, res, next) => {
   */
   const user = req.user.id;
   const post = req.params.id;
-  const { comment } = req.body;
+
+  let { comment } = req.body;
+  // 去除 comment 前後空白，並檢查有無空白
+  comment = comment.trim();
+  if (!comment) {
+    return next(appError(400, "你沒有填寫 comment 資料"));
+  }
 
   const newComment = await Comment.create({
     user,
