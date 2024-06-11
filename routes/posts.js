@@ -69,10 +69,13 @@ router.post("/", isAuth, handleErrorAsync(async (req, res, next) => {
     /*  #swagger.tags = ['Post']
         }]
     */
-    const { content } = req.body;
+    let { content } = req.body;
+    // 去除 content 前後空白，並檢查有無空白
+    content = content.trim();
     if (!content) {
       return next(appError(400, "你沒有填寫 content 資料"));
     }
+
     const newPost = await Post.create({
       user: req.user.id,
       content,
