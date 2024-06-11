@@ -9,7 +9,7 @@ const Comment = require('../models/commentsModel')
 const { isAuth, generateSendJWT } = require("../service/auth");
 
 // 取得所有貼文
-router.get("/", handleErrorAsync(async (req, res, next) => {
+router.get("/", isAuth, handleErrorAsync(async (req, res, next) => {
   /*  #swagger.tags = ['Post']
       }]
   */
@@ -34,7 +34,7 @@ router.get("/", handleErrorAsync(async (req, res, next) => {
 );
 
 // 取得單一貼文
-router.get("/:id", handleErrorAsync(async (req, res, next) => {
+router.get("/:id", isAuth, handleErrorAsync(async (req, res, next) => {
   /*  #swagger.tags = ['Post']
       }]
   */
@@ -138,7 +138,7 @@ router.post("/:id/comment", isAuth, handleErrorAsync(async (req, res, next) => {
 }))
 
 // 取得個人所有貼文列表
-router.get("/user/:id", handleErrorAsync(async (req, res, next) => {
+router.get("/user/:id", isAuth, handleErrorAsync(async (req, res, next) => {
     /*  #swagger.tags = ['Post']
         }]
     */

@@ -31,6 +31,11 @@ router.post("/sign_up", handleErrorAsync(async (req, res, next) => {
     if (!validator.isEmail(email)) {
       return next(appError(400, "Email 格式不正確"));
     }
+    // 檢查 email 是否已存在資料庫
+    const user = await User.findOne({ email });
+    if (user) {
+      return next(appError(400, "email 已被註冊"));
+    }
 
     // 加密密碼
     password = await bcrypt.hash(req.body.password, 12);
@@ -50,10 +55,16 @@ router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
         }]
     */
     const { email, password } = req.body;
+    // 內容不可為空
     if (!email || !password) {
       return next(appError(400, "帳號密碼不可為空"));
     }
+    // 檢查信箱有無註冊
     const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return next(appError(400, "帳號尚未註冊"));
+    }
+    // 檢查密碼
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) {
       return next(appError(400, "您的密碼不正確"));
@@ -69,10 +80,15 @@ router.post("/updatePassword", isAuth, handleErrorAsync(async (req, res, next) =
         }]
     */
     const { password, confirmPassword } = req.body;
-
+    // 檢查 密碼 與 確認密碼
     if (password !== confirmPassword) {
       return next(appError(400, "密碼不一致！"));
     }
+    // 密碼 8 碼以上
+    if (!validator.isLength(password, { min: 8 })) {
+      return next(appError(400, "密碼字數低於 8 碼"));
+    }
+
     const newPassword = await bcrypt.hash(password, 12);
 
     const user = await User.findByIdAndUpdate(req.user.id, {
