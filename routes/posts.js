@@ -93,6 +93,16 @@ router.post("/:id/like", isAuth, handleErrorAsync(async (req, res, next) => {
         }]
     */
     const _id = req.params.id;
+    // 檢查 req.params.id
+    if (!_id || !mongoose.isValidObjectId(_id)) {
+      return next(appError(400, "無效的貼文ID！"));
+    }
+    // 檢查貼文是否存在 
+    const post = await Post.findOne({ _id: req.params.id });
+    if (!post) {
+      return next(appError(400, "輸入不存在的 post id"));
+    }
+
     await Post.findOneAndUpdate({ _id }, { $addToSet: { likes: req.user.id } });
 
     res.status(201).json({
@@ -109,6 +119,16 @@ router.delete("/:id/unlike", isAuth, handleErrorAsync(async (req, res, next) => 
         }]
     */
     const _id = req.params.id;
+    // 檢查 req.params.id
+    if (!_id || !mongoose.isValidObjectId(_id)) {
+      return next(appError(400, "無效的貼文ID！"));
+    }
+    // 檢查貼文是否存在 
+    const post = await Post.findOne({ _id: req.params.id });
+    if (!post) {
+      return next(appError(400, "輸入不存在的 post id"));
+    }
+
     await Post.findOneAndUpdate({ _id }, { $pull: { likes: req.user.id } });
 
     res.status(201).json({

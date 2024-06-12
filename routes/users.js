@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const appError = require("../service/appError");
 const handleErrorAsync = require("../service/handleErrorAsync");
-const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose');
 const validator = require("validator");
 const User = require("../models/usersModel");
 const Post = require("../models/postsModel");
@@ -60,9 +60,9 @@ router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
       return next(appError(400, "帳號密碼不可為空"));
     }
     // 檢查信箱有無註冊
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email });
     if (!user) {
-      return next(appError(400, "帳號尚未註冊"));
+      return next(appError(400, "此帳號尚未註冊"));
     }
     // 檢查密碼
     const auth = await bcrypt.compare(password, user.password);
@@ -146,33 +146,43 @@ router.post("/:id/follow", isAuth, handleErrorAsync(async (req, res, next) => {
   /*  #swagger.tags = ['Like and Tracking']
       }]
   */
+  // 檢查 req.params.id
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return next(appError(400, "無效的用戶ID！"));
+  }
+  // 檢查 id 是否為自己的 id
   if (req.user.id === req.params.id) {
     return next(appError(401, "您無法追蹤自己"));
+  }
+  // 檢查追蹤用戶是否存在 
+  const user = await User.findOne({ _id: req.params.id });
+  if (!user) {
+    return next(appError(400, "輸入不存在的 user id"));
   }
 
   await User.updateOne(
     {
       _id: req.user.id,
-      "following.user": { $ne: req.params.id }
+      "following.user": { $ne: req.params.id },
     },
     {
-      $addToSet: { following: { user: req.params.id } }
+      $addToSet: { following: { user: req.params.id } },
     }
   );
 
   await User.updateOne(
     {
       _id: req.params.id,
-      "followers.user": { $ne: req.user.id }
+      "followers.user": { $ne: req.user.id },
     },
     {
-      $addToSet: { followers: { user: req.user.id } }
+      $addToSet: { followers: { user: req.user.id } },
     }
   );
 
   res.status(200).json({
     status: "success",
-    message: "您已成功追蹤！"
+    message: "您已成功追蹤！",
   });
 }))
 
@@ -181,31 +191,41 @@ router.delete("/:id/unfollow", isAuth, handleErrorAsync(async (req, res, next) =
   /*  #swagger.tags = ['Like and Tracking']
       }]
   */
+  // 檢查 req.params.id
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return next(appError(400, "無效的用戶ID！"));
+  }
+  // 檢查 id 是否為自己的 id
   if (req.user.id === req.params.id) {
-    return next(appError(401, "您無法取消追蹤自己"));
+    return next(appError(401, "您無法追蹤自己"));
+  }
+  // 檢查追蹤用戶是否存在 
+  const user = await User.findOne({ _id: req.params.id });
+  if (!user) {
+    return next(appError(400, "輸入不存在的 user id"));
   }
 
   await User.updateOne(
     {
-      _id: req.user.id
+      _id: req.user.id,
     },
     {
-      $pull: { following: { user: req.params.id } }
+      $pull: { following: { user: req.params.id } },
     }
   );
 
   await User.updateOne(
     {
-      _id: req.params.id
+      _id: req.params.id,
     },
     {
-      $pull: { followers: { user: req.user.id } }
+      $pull: { followers: { user: req.user.id } },
     }
   );
 
   res.status(200).json({
     status: "success",
-    message: "您已成功取消追蹤！"
+    message: "您已成功取消追蹤！",
   });
 }))
 
