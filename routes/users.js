@@ -60,7 +60,7 @@ router.post("/sign_in", handleErrorAsync(async (req, res, next) => {
       return next(appError(400, "帳號密碼不可為空"));
     }
     // 檢查信箱有無註冊
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return next(appError(400, "此帳號尚未註冊"));
     }
